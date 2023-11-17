@@ -1,0 +1,21 @@
+/* Style for the box */
+.resume-container {
+text-align: center;
+}
+.resume-box {
+width: 400px;
+padding: 20px;
+border: 2px solid #000;
+background-color: #fff;
+margin: 20px auto;
+text-align: left;
+font-family: 'Arial', sans-serif;
+}
+.resume-title {
+font-size: 1.2em;
+font-weight: bold;
+margin-bottom: 10px;
+}
+.resume-fact {
+margin-bottom: 8px;
+}
