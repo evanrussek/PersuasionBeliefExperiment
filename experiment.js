@@ -2,15 +2,18 @@ const jsPsych = initJsPsych();
 
 // Define your facts about the person
 var factsList = [
-    "Has a Bachelor's degree in Computer Science.",
-    "Worked as a software engineer for 3 years.",
-    "Speaks three languages fluently.",
-    "Has traveled to 10 different countries.",
-    "Co-authored a paper on software development best practices.",
-    "Devotes time to a local coding bootcamp as a mentor for aspiring developers.",
-    "Received the 'Outstanding Employee of the Year' award at the previous company"
+    { section: 'Positive Traits', facts: ["Has a Bachelor's degree in Computer Science.", "Graduated with honors.", "Speaks three languages fluently."] },
+    { section: 'Work Experience', facts: ["Worked as a software engineer for 3 years.", "Led a team of developers on a critical project."] },
+    { section: 'Skills', facts: ["Proficient in Python, JavaScript, and Java.", "Experience with both front-end and back-end development."] },
+    { section: 'Travel', facts: ["Has traveled to 10 different countries.", "Enjoys experiencing and learning from diverse cultures."] },
+    { section: 'Publications', facts: ["Co-authored a paper on software development best practices.", "Published in the Journal of Computer Science."] },
+    { section: 'Mentorship', facts: ["Devotes time to a local coding boot camp as a mentor for aspiring developers."] },
+    { section: 'Awards', facts: ["Received the 'Outstanding Employee of the Year' award at the previous company."] },
+    { section: 'Negative Traits', facts: ["Has a history of missing project deadlines.", "Struggles with effective communication in a team setting."] },
+    { section: 'Concerns', facts: ["Frequently changes technology stacks, making it challenging to maintain consistency in projects."] }
     // Add more facts as needed
-];
+  ];
+
 
 // Define questions corresponding to each fact
 var questionsList = [
@@ -38,16 +41,28 @@ function shuffleQuestions() {
 function createResumeTrial(facts){
 
     var html = '<div class="resume-container">';
-
     html += '<p>Please read this person\'s resume.</p>';
 
     html += '<div class="resume-box">';
-    html += '<p class="resume-title">Dave Johnson\'s Resume</p>';
+    html += '<p class="resume-title">Dave\'s Resume</p>';
+
     for (var i = 0; i < facts.length; i++) {
-        html += '<p class="resume-fact">' + facts[i] + '</p>';
+      var section = facts[i].section;
+      var factsInSection = facts[i].facts;
+
+      html += '<div class="resume-section">';
+      html += '<p class="resume-title">' + section + '</p>';
+      
+      for (var j = 0; j < factsInSection.length; j++) {
+        html += '<p class="resume-fact">' + factsInSection[j] + '</p>';
+      }
+
+      html += '</div>';
     }
+
     html += '</div>';
     html += '</div>';
+
 
     return {
         type: jsPsychHtmlButtonResponse,

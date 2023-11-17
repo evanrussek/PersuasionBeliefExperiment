@@ -12,8 +12,12 @@ text-align: left;
 font-family: 'Arial', sans-serif;
 }
 .resume-title {
-font-size: 1.2em;
+font-size: 1.5em;
 font-weight: bold;
+margin-bottom: 15px;
+text-align: center;
+}
+.resume-section {
 margin-bottom: 10px;
 }
 .resume-fact {
