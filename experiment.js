@@ -1,8 +1,9 @@
 const jsPsych = initJsPsych();
 
 // Define your facts about the person
+/*
 var factsList = [
-    { section: 'Positive Traits', facts: ["Has a Bachelor's degree in Computer Science.", "Graduated with honors.", "Speaks three languages fluently."] },
+   // { section: 'Positive Traits', facts: ["Has a Bachelor's degree in Computer Science.", "Graduated with honors.", "Speaks three languages fluently."] },
     { section: 'Work Experience', facts: ["Worked as a software engineer for 3 years.", "Led a team of developers on a critical project."] },
     { section: 'Skills', facts: ["Proficient in Python, JavaScript, and Java.", "Experience with both front-end and back-end development."] },
     { section: 'Travel', facts: ["Has traveled to 10 different countries.", "Enjoys experiencing and learning from diverse cultures."] },
@@ -13,6 +14,19 @@ var factsList = [
     { section: 'Concerns', facts: ["Frequently changes technology stacks, making it challenging to maintain consistency in projects."] }
     // Add more facts as needed
   ];
+*/
+
+  var factsList = [
+    // { section: 'Positive Traits', facts: ["Has a Bachelor's degree in Computer Science.", "Graduated with honors.", "Speaks three languages fluently."] },
+     { section: 'Years of Experience', facts: ["5"] },
+     { section: 'Education', facts: ["Bachelors in Computer Science"] },
+     { section: 'Number of previous jobs from which terminated', facts: ["1"] },
+     { section: 'Number of missed deadlines in previous job', facts: ["6"] },
+     { section: 'Number of complaints from prior teamates', facts: ["3"] },
+     { section: 'Awards', facts: ["Received the 'Outstanding Employee of the Month' award at the previous company."] },
+     { section: 'Mentorship', facts: ["Devotes time to a local coding boot camp. Has mentored 4 aspiring developers."] },
+     // Add more facts as needed
+   ];
 
 
 // Define questions corresponding to each fact
@@ -26,7 +40,6 @@ var questionsList = [
     "What award did Dave receive at the previous company?"
     // Add more questions as needed
 ];
-
 
 // Shuffle the facts and questions for each trial
 function shuffleFacts() {
@@ -51,7 +64,7 @@ function createResumeTrial(facts){
       var factsInSection = facts[i].facts;
 
       html += '<div class="resume-section">';
-      html += '<p class="resume-title">' + section + '</p>';
+      html += '<p class="resume-section-title">' + section + '</p>';
       
       for (var j = 0; j < factsInSection.length; j++) {
         html += '<p class="resume-fact">' + factsInSection[j] + '</p>';
