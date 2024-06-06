@@ -1,33 +1,75 @@
-/* Style for the box */
-.resume-container {
-text-align: left;
-}
-.resume-box {
-width: 400px;
-padding: 20px;
-border: 2px solid #000;
-background-color: #fff;
-margin: 20px auto;
-text-align: left;
-font-family: 'Arial', sans-serif;
-}
-.resume-title {
-font-size: 1.5em;
-font-weight: bold;
-margin-bottom: 15px;
-text-align: left;
-}
+/* Style for the sticks container */
+#sticks-container {
+    white-space: nowrap; /* Prevent sticks from wrapping to the next line */
+    overflow-x: auto; /* Add horizontal scrollbar if needed */
+  }
+  
+  /* Style for each stick container */
+  .stick-container {
+    display: inline-block;
+    vertical-align: bottom;
+    margin-right: 10px; /* Adjust the spacing between sticks */
+    margin-bottom: 40px;
+    margin-top: 20px;
+    position: relative; /* Ensure stick container is positioned relative to allow absolute positioning of rectangles */
+  }
 
-.resume-section-title {
-font-size: 1.2em;
-font-weight: bold;
-margin-bottom: 15px;
-text-align: left;
-}
+  #guess-container {
+    display: inline-block;
+    vertical-align: bottom;
+    margin-right: 10px; /* Adjust the spacing between sticks */
+    padding-bottom: 40px;
+    margin-top: 20px;
+    position: relative; /* Ensure stick container is positioned relative to allow absolute positioning of rectangles */
+  }
 
-.resume-section {
-margin-bottom: 10px;
-}
-.resume-fact {
-margin-bottom: 8px;
-}
+    /* Style for each stick container */
+    .stick-wrapper {
+        display: inline-block;
+        vertical-align: bottom;
+        margin-right: 10px; /* Adjust the spacing between sticks */
+        position: relative; /* Ensure stick container is positioned relative to allow absolute positioning of rectangles */
+        }
+  
+  /* Style for the stick */
+  .stick {
+    display: inline-block;
+    width: 20px; /* Change this value as needed */
+    height: 100px; /* Change this value as needed */
+    background-color: black;
+    margin-right: 10px; /* Adjust the spacing between sticks */
+  }
+  
+  /* Style for the stick length text */
+  .stick-length {
+    text-align: center;
+    margin-top: 5px;
+  }
+  
+  /* Style for the checkbox */
+  .stick-checkbox {
+    display: block;
+    text-align: center;
+    position: relative;
+  }
+  
+  /* Style for the rectangle */
+  .rectangle {
+    width: 35px; /* Adjust width as needed */
+    height: 180px; /* Adjust height as needed */
+    background-color: gray; /* Adjust color as needed */
+    position: absolute;
+    bottom: 0; /* Ensure rectangles appear below other elements */
+    left: 0;
+  }
+  
+  /* Additional styles for the container */
+  #stick-trial-container {
+    text-align: center;
+  }
+  
+  #instruction-text {
+    margin-bottom: 40px;
+    font-size: 18px;
+    font-weight: bold;
+  }
