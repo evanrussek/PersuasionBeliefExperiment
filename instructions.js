@@ -1,14 +1,13 @@
-// just define the instruction pages here and whether they'll depend on the condition
+// define condition here
 
 
-var participant_role = "advocate";
+var participant_role = "advocate"; // "advocate" or "judge"
 var covered_condition = true;
 var advocate_goal = "accurate" // "high", "low", "accurate"
 
-// this is the uncovered condition...
-
-// covered condition:
-// need to edit so that there's no effect of covered on which items are selected?
+////////////////////////////////////
+////////// Define instructions //////
+////////////////////////////////////
 
 var page1_html = "<p> In this task, two participants, an advocate and a judge, will be paired up. " +
 "Their choices will together determine each other's bonus payment. </p>"+
@@ -18,12 +17,10 @@ var page1_html = "<p> In this task, two participants, an advocate and a judge, w
 "<p>The sticks will be arranged such that the smallest sticks are on the left and the largest sticks on the right. An example is shown below.  <\p>" +
 '<br> <img src="images/Example_Sticks.png"></img>';
 
-// notes: add picture of the covered sticks
 var page1b_boxes_covered_html = "<p> The advocate will be presented with a screen where each stick is covered by a box, as shown below. <\p>" +
 "The advocate will not know what stick is behind each box, but will know that the sticks are ordered with the smallest on the left and the largest on the right.<\p>" +
 '<br> <img src="images/Example_Covered_Sticks.png"></img>';
 
-// notes: add picture of clicking on boxes for the covered condition.
 var page2_html = "The advocate will then select 5 of the sticks, like this: <br>" +
 (covered_condition ? '<img src="images/Example_Covered_Selections.png"></img>' : '<img src="images/Example_Selections.png"></img>');
 
@@ -98,7 +95,7 @@ if (covered_condition){
     var instruction_pages = uncovered_pages;
 }
 
-instruction_pages = []
+// instruction_pages = []
 
 var instruction_trial = {
     type: jsPsychInstructions,
@@ -106,7 +103,9 @@ var instruction_trial = {
     show_clickable_nav: true
 }
 
+/////////////////////////
 /// Build the quiz
+///////////////////////////
 
 var role_q_correct = ((participant_role == "advocate" ) ? 0 : 1);
 
@@ -118,12 +117,11 @@ if (advocate_goal === "accurate"){
     var ad_q_correct = 2;
 }
 
-
 var quiz_questions = [
     {
       prompt: "What is your role in this experiment?",
       options: ["Advocate", "Judge"],
-      correct: role_q_correct
+      correct: role_q_correct // this gives the index into options which is correct
     },
     {
       prompt: "What is the judge's goal?",
@@ -141,7 +139,6 @@ var quiz_questions = [
 
 
 
-  
   // Define the quiz trial
 
   var instruction_correct = false;
@@ -149,10 +146,12 @@ var quiz_questions = [
   var instruction_check = {
     type: jsPsychSurveyMultiChoice,
     questions: quiz_questions,
+
+    // on finsih check which if any questions were incorrect (note - change these so they're not global vars)
     on_finish: function(quiz_data) {
 
         quiz_responses = quiz_data.response;
-        console.log(quiz_responses)
+        // console.log(quiz_responses)
 
         total_correct = 0;
 
