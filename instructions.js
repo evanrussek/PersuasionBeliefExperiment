@@ -117,11 +117,30 @@ if (advocate_goal === "accurate"){
     var ad_q_correct = 2;
 }
 
+
+var start_questions = [
+  {
+    prompt: "Are you a robot?",
+    options: ["yes", "no"],
+    correct: 1 // this gives the index into options which is correct - starts at 0 - if advocate is correct do 0 if judge do 1
+  }
+  // Add more questions as needed
+];
+
+
+var start_question_trial = { // this runs the quiz
+  type: jsPsychSurveyMultiChoice,
+  questions: start_questions
+}
+
+
+
+
 var quiz_questions = [
     {
       prompt: "What is your role in this experiment?",
       options: ["Advocate", "Judge"],
-      correct: role_q_correct // this gives the index into options which is correct
+      correct: role_q_correct // this gives the index into options which is correct - starts at 0 - if advocate is correct do 0 if judge do 1
     },
     {
       prompt: "What is the judge's goal?",
@@ -143,7 +162,7 @@ var quiz_questions = [
 
   var instruction_correct = false;
 
-  var instruction_check = {
+  var instruction_check = { // this runs the quiz
     type: jsPsychSurveyMultiChoice,
     questions: quiz_questions,
 
@@ -185,7 +204,7 @@ var quiz_questions = [
 
 /* define a page for the incorrect response */
 var showsplash = true;
-var splash_screen = {
+var splash_screen = { // this  is the screen if you answer incorectly
 	type: jsPsychHtmlButtonResponse,
     timing_post_trial: 0,
 	//    button_html: '<button class="jspsych-btn" style="display:none">%choice%</button>',
@@ -198,7 +217,7 @@ var splash_screen = {
 		}
 }
 
-var conditional_splash = {
+var conditional_splash = { // 
     timeline: [splash_screen],
     conditional_function: function(data) {
       return !instruction_correct // skip if correct

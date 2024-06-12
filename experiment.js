@@ -29,6 +29,8 @@ var stick_trial = {
 // Create an array to hold all trials
 var timeline = [];
 
+timeline.push(start_question_trial)
+
 // timeline.push(instruction_trial)
 timeline.push(intro_loop_node)
 timeline.push(finish_instruc_screen)
