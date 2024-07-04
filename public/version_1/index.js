@@ -25,13 +25,18 @@ var stick_trial = {
     // Add any other parameters your trial needs here
 };
 
-
 // Create an array to hold all trials
 var timeline = [];
 
-timeline.push(start_question_trial)
+var preload = {
+    type: jsPsychPreload,
+    auto_preload: true ,
+    max_load_time: 60000 // 1 minute
+}
 
-// timeline.push(instruction_trial)
+timeline.push(preload)
+timeline.push(start_question_trial)
+timeline.push(conditional_start_quiz_incorrect)
 timeline.push(intro_loop_node)
 timeline.push(finish_instruc_screen)
 

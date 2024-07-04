@@ -65,8 +65,6 @@ if (advocate_goal == "high"){
 var page7_html = "<p> As a reminder, you will be the " + participant_role + " <\p>" + 
 "<p> You will need to pass an instruction quiz before begining the task. Getting any questions wrong will require you to re-read the instructions. <\p>"
 
-
-
 var covered_pages = [
     page1_html,
     page1b_boxes_covered_html,

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My experiment</title>
+    <script src="jspsych/jspsych.js"></script>
+    <script src="evan_plugins/plugin-stick-trial.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="jspsych/plugin-survey-text.js"></script>
+    <script src="jspsych/plugin-survey-multi-choice.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
+    <script src="jspsych/plugin-instructions.js"></script>
+    <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
+    <link rel="stylesheet" href="experiment_style.css">
+
+
+  </head>
+  <body>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore } from "firebase/firestore";
+
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+      
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBUQ0Jx66Tc-btJwlzMMrS-3zGbANkYESA",
+          authDomain: "spinproject-39dd6.firebaseapp.com",
+          projectId: "spinproject-39dd6",
+          storageBucket: "spinproject-39dd6.appspot.com",
+          messagingSenderId: "609822117119",
+          appId: "1:609822117119:web:577a601c0de91e5efc10ca"
+        };
+      
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+
+        // const app = initializeApp(firebaseConfig);
+
+        //import firebase from "firebase/compat/app";
+        // Required for side-effects
+        // import "firebase/firestore";
+
+      </script>
+
+  <div id="sticks-container"></div>
+  <script src="utils.js"></script>
+  <script src="instructions.js"></script>
+  <script src="index.js"></script> 
+  </body>
+</html>
+
