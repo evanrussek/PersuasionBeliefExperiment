@@ -10,45 +10,51 @@ var jsPsychStickTrial = (function (jspsych) {
               default: 'Continue',
               description: 'Label of the button to submit responses.'
             },
-            show_rectangles: {
+            covered_condition: {
               type: jspsych.ParameterType.BOOL,
               pretty_name: 'Show rectangles',
               default: true,
               description: 'Whether to show rectangles initially over sticks and lengths.'
             },
-            receiver_condition:{
+            judge_condition:{
                 type: jspsych.ParameterType.BOOL,
-                pretty_name: 'Receiver Condition',
+                pretty_name: 'Judge Condition',
                 default: false,
-                description: 'Is this the receiver condition (otherwise, it is the sender condition).'
+                description: 'Is this the judge condition (otherwise, it is the advocate condition).'
             },
-
-            selectedStickValues: {
+            selected_stick_values_for_estimate: {
                 type: jspsych.ParameterType.ARRAY,
                 // array: jsPsych.ParameterType.FLOAT,
                 pretty_name: 'Selected Stick Values',
                 default: [],
-                description: 'Array of selected stick values (numbers).'
+                description: 'This is relevant for conditions where an estimate is solicited (e.g. judge or second set of advocate trials). This is what they will see to prompt an estimate.'
               },
-            N_Sticks: {
-                type: jspsych.ParameterType.INT,
-                pretty_name: 'Number of sticks to display.',
-                default: 20,
-                description: 'Number of sticks to display on first screen.'
+            original_stick_values_for_selection: {
+                type: jspsych.ParameterType.ARRAY,
+                // array: jsPsych.ParameterType.FLOAT,
+                pretty_name: 'Stick Length Values',
+                default: [],
+                description: 'Relevant for advocate conditions, to solicit .'
+              },
+            advocate_goal: {
+                type: jspsych.ParameterType.STRING,
+                pretty_name: 'Advocate Goal',
+                default: 'high',
+                description: 'The goal of the advocate in the trial. For the judge case, this is what the paired advocate"s goal was'
             },
-            Max_Stick_Val: {
-                type: jspsych.ParameterType.INT,
-                pretty_name: 'Maximum stick value.',
-                default: 95,
-                description: 'Maximum stick value.'
+            multi_trial: {
+                type: jspsych.ParameterType.BOOL,
+                pretty_name: 'Multi Trial',
+                default: false,
+                description: 'whether this trial is part of multiple trials, or is the only trial'
             },
-            Min_Stick_Val: {
-                type: jspsych.ParameterType.INT,
-                pretty_name: 'Minimum stick value.',
-                default: 15,
-                description: 'Minimum stick value.'
-            }
+            advocate_estimate_trial: {
+                type: jspsych.ParameterType.BOOL,
+                pretty_name: 'Advocate Estimate Trial',
+                default: false,
+                description: 'whether this trial is an advocate estimate trial'
           }
+        }
     };
 
 
@@ -59,44 +65,47 @@ class StickTrialPlugin {
 
     trial(display_element, trial) {
 
-        // can you add check that a number was submitted at the end of the experiment?
 
+        // in the non-covered condition, the stages are
+        // 1) boxes over sticks, 2) show selected sticks with no boxes 3) show sticks that were clicked on, 4 enter a guess
 
-        // in the show boxes condition:
-            // stages are: 1) boxes over sticks, 2) show selected sticks with no boxes 3) show sticks that were clicked on, 4 enter a guess
+        // in the covered condition, the stages are:
+        // 1) all sticks, no boxes 2) show sticks that were clicked on alone, 3) enter a guess
 
-        // in the no boxes condition it is:
-            // stages are: 1) all sticks, no boxes 2) show sticks that were clicked on alone, 3) enter a guess
+        var cover_sticks = false;
 
-        var show_rectangles = false;
-
-        if (trial.receiver_condition){
-            var show_rectangles = false;
+        if (trial.judge_condition | trial.advocate_estimate_trial){
+            var cover_sticks = false;
         }else{
-            var show_rectangles = trial.show_rectangles;
+            var cover_sticks = trial.covered_condition;
         }
 
         var stage_num = 1;
-        var trial_data = {}
-        var endTime = 0
-        var response_time_selection = 0;
-        var response_time_guess = 0;
-        var average_stick_guess = 0;
-        var startTime = performance.now();
-        if (trial.receiver_condition){
-            var selectedStickValues = trial.selectedStickValues;
-        }else{
-            var selectedStickValues = [];
-        }
 
-        function display_sticks(sticksHTML, stickLengths, show_rectangles, add_checkbox){
+        // INITIALIZE DATA THAT WE'LL SAVE
+        var trial_data = {}
+
+        // to compute response times
+        var response_time_selection = NaN;
+        var response_time_guess = NaN;
+        var startTimeSelection = NaN; 
+        var startTimeGuess = NaN;
+
+        // results of advocate selection
+        var advocateSelectedStickValues = [];
+        var advocateSelectedStickIndexes = [];
+
+        // estimate made by either advocate or judge
+        var estimate = NaN;
+
+        function display_sticks(sticksHTML, stickLengths, cover_sticks, add_checkbox){
             for (var i = 0; i < stickLengths.length; i++) {
                 // Add HTML for each stick, its length text, and checkbox
                 sticksHTML += '<div class="stick-container">' +
                     '<div class="stick-wrapper">' +
                     '<div class="stick" style="height:' + stickLengths[i] + 'px;"></div>' +
                     '<div class="stick-length">' + stickLengths[i] + '</div>' +
-                    '<div class="rectangle" style="' + (show_rectangles ? 'display: block;' : 'display: none;') + '"></div>' +
+                    '<div class="rectangle" style="' + (cover_sticks ? 'display: block;' : 'display: none;') + '"></div>' +
                     '</div>';
                 if (add_checkbox) {
                     sticksHTML+= '<input type="checkbox" class="stick-checkbox" id="stick-' + i + '">'
@@ -107,12 +116,14 @@ class StickTrialPlugin {
             return sticksHTML
         }
 
-        function gen_screen1_html(stickLengths, show_rectangles, instruction_text, add_checkbox){
+        function gen_screen1_html(stickLengths, cover_sticks, instruction_text, add_checkbox){
             // Create HTML for sticks and rectangles
             var sticksHTML = '';
 
+            console.log(instruction_text)
+
             // display the sticks
-            sticksHTML = display_sticks(sticksHTML, stickLengths, show_rectangles, add_checkbox)
+            sticksHTML = display_sticks(sticksHTML, stickLengths, cover_sticks, add_checkbox)
 
             var screen_html = '<div id="stick-trial-container">' +
             '<div id="instruction-text">' + instruction_text + '</div>' +
@@ -124,80 +135,96 @@ class StickTrialPlugin {
 
         }
 
-        if (trial.receiver_condition){
-            display_element.innerHTML = gen_screen1_html(selectedStickValues, show_rectangles, 'These are the sticks that were selected', false);
+        if (trial.judge_condition){
+
+            // JUDGE CONDITION
+
+            if (trial.multi_trial){
+                var judge_preamble = `<p>Here, the advocate's goal was for you to make as ${trial.advocate_goal.toUpperCase()} a guess as possible. </p> <p> These are the sticks that they selected.</p>`
+            }else{
+                var judge_preamble = `<p>The advocate's goal was for you to make as ${trial.advocate_goal.toUpperCase()} a guess as possible. </p> <p> These are the sticks that they selected.</p>`
+            }
+
+            var add_checkbox = false;
+            display_element.innerHTML = gen_screen1_html(trial.selected_stick_values_for_estimate, cover_sticks, judge_preamble, add_checkbox);
+
+            // MOVE STRAIGHT TO ESTIMATE STAGE
+            stage_num = 3;
+
+        }else if (trial.advocate_estimate_trial){
+
+            var advocate_estimate_preamble = `<p>Here, the your goal was for the judge to make as ${trial.advocate_goal.toUpperCase()} a guess as possible. </p> <p> These are the sticks that you selected.</p>`;
+            
+            var add_checkbox = false;
+            display_element.innerHTML = gen_screen1_html(trial.selected_stick_values_for_estimate, cover_sticks, advocate_estimate_preamble, add_checkbox);
+            
+            // MOVE STRAIGHT TO ESTIMATE STAGE
             stage_num = 3;
 
         }else{
 
-            // Generate random stick lengths for the current trial
-            var stickLengths = generateRandomStickLengths(trial.N_Sticks, trial.Max_Stick_Val, trial.Min_Stick_Val);
+            // ADVOCATE CONDITION
+            var advocate_goal = trial.advocate_goal.toUpperCase();
 
-            // print the true mean of the sticks... 
-            const mean_stick_length = stickLengths.reduce((sum, num) => sum + num, 0) / stickLengths.length;
+            if (trial.multi_trial){
+                var instruc_text = `<p>For this game, you goal is for the judge to make as ${advocate_goal} a guess as possible. <\p> <p>Sticks are ordered with smallest on the left and largest on the right. <\p> <p>Please select 5 sticks to present to the judge.</p>`;
+            }else{
+                var instruc_text = `<p>Your goal is for the judge to make as ${advocate_goal} a guess as possible.<\p> <p>Sticks are ordered with smallest on the left and largest on the right. <\p> <p><strong>Please select 5 sticks to present to the judge.</strong></p>`;
+            }
 
-            console.log(mean_stick_length)
+            var add_checkbox = true;
+            display_element.innerHTML = gen_screen1_html(trial.original_stick_values_for_selection, cover_sticks, instruc_text, add_checkbox);
 
-            // Display sticks HTML with instruction text
-            display_element.innerHTML = gen_screen1_html(stickLengths, show_rectangles, 'Please select 5 sticks to present.', true);
-        
+            startTimeSelection = performance.now(); // GET THE TIME THAT STICKS ARE DISPLAYED
+
+            // STAY ON STAGE 1 - GET SELECTIONS
         }
 
-
-
-        // Continue button click handler -- 
+        // WHAT TO DO WHEN THE BUTTON IS CLICKED, FOR ALL STAGES
         display_element.querySelector('#continue-btn').addEventListener('click', () => {
             
     
-            // remove the boxes and update the screen
+            // HANDLE STAGE 1 - STICKS ARE SELECTED
             if (stage_num == 1){
 
                 console.log("Starting Stage 1")
 
-
                 // Compute the response time
-                endTime = performance.now();
-                response_time_selection = Math.round(endTime - startTime);
+                var currentTime = performance.now();
+                response_time_selection = Math.round(currentTime - startTimeSelection);
 
-                // Collect selected sticks
-                var selectedSticks = [];
-                selectedStickValues = [];
-                var allStickValues = [];
-                var selectedStickIndexes = [];
+                // RESET SELECTED STICKS
+                advocateSelectedStickValues = [];
+                advocateSelectedStickIndexes = [];
+
+                // RECORD SELECTED STICKS
                 var checkboxes = display_element.querySelectorAll('.stick-checkbox');
                 var rectangles = display_element.querySelectorAll('.rectangle');
                 checkboxes.forEach(function (checkbox, index) {
 
-                    allStickValues.push(stickLengths[index]);
-
-                    if (checkbox.checked) {
-                        selectedSticks.push(stickLengths[index]);
-                        selectedStickValues.push(stickLengths[index]);
-                        selectedStickIndexes.push(index);                // Hide the rectangle for the checked stick
-                    // rectangles[index].style.display = 'none';
+                    if (checkbox.checked){
+                        advocateSelectedStickValues.push(trial.original_stick_values_for_selection[index]);
+                        advocateSelectedStickIndexes.push(index);                
                     }
                 });
 
-                // Check if exactly 5 sticks are selected
-                if (selectedSticks.length !== 5) {
+                // CHECK IF 5 STICKS WERE SELECTED
+                if (advocateSelectedStickValues.length !== 5) {
+
                     alert('Please select 5 sticks before continuing.');
 
-                    // want the trial to re-start here?
-
-                } else { // update stage 1 to stage 2...
-
-                    stage_num = 2; // update the stage number
+                } else {
+                    // REMOVE RECTANGLES AND UPDATE STAGE NUMBER
+                    stage_num = 2;
 
                     checkboxes.forEach(function (checkbox, index) {
                         if (checkbox.checked) {
-                        //selectedSticks.push(stickLengths[index]);
-                        // Hide the rectangle for the checked stick
-                        rectangles[index].style.display = 'none';
+                            rectangles[index].style.display = 'none';
                         }
                     });
 
-                    // click the button again if we're in the no-rectange condition
-                    if (!show_rectangles){
+                    // IF IN NO COVER CONDITION, DO ANOTHER CLICK
+                    if (!cover_sticks){
                         document.getElementById('continue-btn').click();
                     }
                 }
@@ -206,72 +233,98 @@ class StickTrialPlugin {
 
             else if (stage_num == 2){
 
-                // for one condition, you'll want to start from here
+                // HERE WE SHOW THE STICKS THAT WERE SELECTED
 
-                console.log("Starting Stage 2")
+                // IN MUTL_TRIAL ADVOCATE CONDITION (selection part), END THE TRIAL AND RECORD DATA
+                if (!trial.judge_condition & trial.multi_trial){
 
-                stage_num = 3;
+                    trial_data = {
+                        advocate_selected_stick_values: advocateSelectedStickValues,
+                        advocate_selected_stick_indexes: advocateSelectedStickIndexes,
+                        response_time_selection: response_time_selection
+                    }
+                    this.jsPsych.finishTrial(trial_data)
 
-                // now show the selected sticks on a new screen
-                var sticksHTML = '';
+                }else{ // IF SIGNLE TRIAL ADVOCATE CONDITION - NOTE NOT JUDGE CONDITION, BECAUSE THAT IS HANDLED ABOVE AND SKIPS TO STAGE 3
 
-                // display the selected sticks
-                document.getElementById('instruction-text').innerHTML = 'These are the sticks that were selected.'
+                    // SHOW THE STICKS THAT WERE SELECTED AND MOVE TO STAGE 3
 
-                sticksHTML = display_sticks(sticksHTML, selectedStickValues, false, false)
+                    console.log("Starting Stage 2")
 
-                document.getElementById('sticks-container').innerHTML= sticksHTML;
+                    stage_num = 3;
 
 
-                // display_element.innerHTML = screen_html;
+                    document.getElementById('instruction-text').innerHTML = 'These are the sticks that you selected to be shown to the judge.'
 
-            }
+                    var sticksHTML = '';
+                    var cover_sticks = false;
+                    var add_checkbox = false;
+                    sticksHTML = display_sticks(sticksHTML, advocateSelectedStickValues, cover_sticks, add_checkbox)
+                    document.getElementById('sticks-container').innerHTML= sticksHTML;
+                }
+            } // end if stage == 2
 
             else if (stage_num == 3){
 
-                // Enter a guess as to the mean 
-                startTime = performance.now();
-
                 console.log("Starting Stage 3")
+
+                // ENTER A ESTIMATE AS TO THE MEAN
+                startTimeGuess = performance.now();
                 
-                // enter a guess
-                document.getElementById('instruction-text').innerHTML = 'Enter your guess for the average stick length in the original pile.'
+                if (trial.judge_condition){
+                    if (trial.multi_trial){
+                        var guess_preamble = '<p> Please enter a guess for the average stick length in the original pile from which those sticks were selected. <\p> <p> Please enter a number. You will be bonused based on the ACCURACY of this guess. <\p>';
+                    }else{
+                        var guess_preamble = '<p> Please enter a guess for the average stick length in the original pile from which those sticks were selected. <\p> <p> Please enter a number. You will be bonused based on the ACCURACY of this guess. <\p>';
+                    }
+                }else{
+                    if (trial.multi_trial){ // this corresponds to the advocate_estimate_trial condition
+                        var guess_preamble = '<p> Please enter a guess for the average stick length in the original pile that from which those sticks were selected. <\p> <p> Please enter a number. You will be bonused based on the ACCURACY of this guess. <\p>';
+                    }else{
+                        var guess_preamble = '<p> Thank you for selecting sticks for the judge.</p> <p> We actually now would like you to also enter a guess for the average stick length in the original pile. <\p> <p> Please enter a number. You will be additionally bonused based on the ACCURACY of this guess. <\p>';
+                    }
+                }
+
+                document.getElementById('instruction-text').innerHTML = guess_preamble;
                 document.getElementById('sticks-container').innerHTML = '<div id="guess-container">' +
                 '<label for="stick-average-guess"></label>' +
                 '<input type="text" id="stick-average-guess" name="stick-average-guess">' +
                 '</div>';
 
-                // end the task and save the data...
                 stage_num = 4;
             }
             
             else if (stage_num == 4){
                 
-                endTime = performance.now();
-                response_time_guess = Math.round(endTime - startTime);
+                currentTime = performance.now();
+                response_time_guess = Math.round(currentTime - startTimeGuess);
 
-                // grab the text data data
+                // grab the text data
                 var guessInput = document.getElementById('stick-average-guess');
-                var average_stick_guess = guessInput.value;
-                // console.log('Participant guess:', participantGuess);
+                estimate = guessInput.value;    
 
+                // CHECK IF A NUMBER WAS ENTERED - IF NOT RETURN TO STAGE 3
+                if (isNumber(estimate)){
+    
+                    trial_data = {
+                        advocate_selected_stick_values: advocateSelectedStickValues,
+                        advocate_selected_stick_indexes: advocateSelectedStickIndexes,
+                        response_time_selection: response_time_selection,
+                        average_stick_guess: estimate,
+                        response_time_guess: response_time_guess            
+                    }
+    
+                    // record the data and end the trial
+                    this.jsPsych.finishTrial(trial_data)
 
-                // End the task and record the key data
-                trial_data = { // this need to depend on the condition...                   
-                    all_stick_values: allStickValues,
-                    selected_stick_values: selectedStickValues,
-                    selected_stick_indexes: selectedStickIndexes,
-                    rt_selection: response_time_selection,
-                    rt_guess: response_time_guess,
-                    average_stick_guess: average_stick_guess
+                }else{
+
+                    alert('Please enter a number for your guess.');
+                    stage_num = 3;
+                    document.getElementById('continue-btn').click();
+
                 }
-
-                // record the data and end the trial
-                this.jsPsych.finishTrial(trial_data)
-
             }
-
-
       });
     }
   }

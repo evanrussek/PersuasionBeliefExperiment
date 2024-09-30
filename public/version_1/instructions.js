@@ -1,99 +1,152 @@
 // define condition here
 
-var participant_role = "advocate"; // "advocate" or "judge"
-var covered_condition = true;
-var advocate_goal = "accurate" // "high", "low", "accurate"
+// https://spinproject-39dd6.web.app/version_1/?ROLE=advocate&COVERED=false&GOAL=high&N_TRIAL=multi
+
+function getQueryVariable(variable)
+{
+       var query = window.location.search.substring(1);
+       var vars = query.split("&");
+       for (var i=0;i<vars.length;i++) {
+               var pair = vars[i].split("=");
+               if(pair[0] == variable){return pair[1];}
+       }
+       return(false);
+}
+
+var participant_role_ex = "advocate"; // "advocate" or "judge"
+var covered_condition_ex = false;
+var advocate_goal_ex = "high" // "high", "low", "accurate"
+var n_trial_condition_ex = "multi" // "single", or "multi"
+
+// grab the subject prolific ID
+if (window.location.search.indexOf('ROLE') > -1) {
+  var participant_role = getQueryVariable('ROLE');
+}
+else {
+  var participant_role = participant_role_ex; // "advocate" or "judge"
+}
+
+if (window.location.search.indexOf('COVERED') > -1) {
+  var covered_condition = getQueryVariable('COVERED') === "true";
+}else{
+  var covered_condition = covered_condition_ex; // true or false
+}
+
+if (window.location.search.indexOf('GOAL') > -1) {
+  var advocate_goal = getQueryVariable('GOAL');
+}else{
+  var advocate_goal = advocate_goal_ex; // "high", "low", "accurate"
+}
+
+if (window.location.search.indexOf('N_TRIAL') > -1) {
+  var n_trial_condition = getQueryVariable('N_TRIAL');
+}else{
+  var n_trial_condition = n_trial_condition_ex; // "single", or "multi"
+}
+
+
 
 ////////////////////////////////////
 ////////// Define instructions //////
 ////////////////////////////////////
 
-var page1_html = "<p> In this task, two participants, an advocate and a judge, will be paired up. " +
-"Their choices will together determine each other's bonus payment. </p>"+
-"<p> The task will work as follows: </p>" +
-"<p> First 20 `sticks' will be randomly drawn" + (covered_condition ? ".": "and presented to the advocate.") + "<\p>" +
-"<p> The sticks will vary in `height'. They will be arranged such that the shortest are on the left and the tallest are on the right and their height indicated below each one. <\p>" +
-"<p> An example is shown below: <\p>" +
-'<br> <img src="images/Example_Sticks.png"></img>';
-
-var page1b_boxes_covered_html = "<p> The advocate will be presented with a screen where each stick is covered by a box, as shown below. <\p>" +
-"The advocate will not know the height of the sticks behind each box, but will know that the sticks are ordered with the shortest on the left and the tallest on the right. Thus, the advocate will know the sticks `order' but not their height.<\p>" +
-'<br> <img src="images/Example_Covered_Sticks.png"></img>';
-
-var page2_html = "The advocate will then select 5 of the sticks, to reveal to the judge, like this: <br>" +
-(covered_condition ? '<img src="images/Example_Covered_Selections.png"></img>' : '<img src="images/Example_Selections.png"></img>');
-
-var page2b_boxes_covered_html = "<p> In the example, these are the selected sticks. <\p>" +
-'<br> <img src="images/Example_Covered_Post_Selection.png"></img>';
-
-var page3_html = "This is what the judge would see, given those selections. Notice that the judge gets to see the height of each of these sticks, but not the height of the sticks that weren't selected, nor the `order' of the selected sticks (whether they were the shortest sticks, the tallest sticks, etc): <br>" +
-(covered_condition ? '<img src="images/Example_Covered_Presentation.png"></img>' : '<img src="images/Example_Presentation.png"></img>');
-
-var page4_html = "The judge will then guess the average height of ALL 20 of the sticks that were in the initial draw (NOT just the ones that were revealed). Their decision screen will look like this: " +
-'<br> <img src="images/Example_Guess.png"></img>';
-
-// note: add picture of just the sticks
-var page5_html = "<p> The judge's goal is to make as accurate a guess as possible about the average height of all 20 sticks. " +
-"To incentivize this, the judge will earn a higher bonus the closer their guess is to the true average of the 20 sticks." +
-"Specifically, the judge will start with a bonus of $1. However, out of this bonus, they will lose 1¢ for each `unit' away from the true value that they guess. <\p>" +
-"So for instance if this is the set of sticks that were initially drawn (true mean is 66), and the judge guessed 80 units, then they will get a 86¢ ($1 - (80c - 66c)) bonus."+
-'<p>  <br> <img src="images/Example_Sticks.png"></img> <\p>';
-
-var page6_start = "<p> The advocate's goal is for the judge to make as " + advocate_goal + " a guess as possible <\p>";
-
-var incentivization_truthful = "To incentivize this, the advocate will also earn a higher bonus the closer the judge's guess is to the true average of the original pile. Specifically, the judge will start with a bonus of $1. However, out of this bonus, they will lose 1¢ for each unit away from the true value that the judge guesses. <\p>" +
-"So for instance if this is the set of sticks that were initially drawn (true mean is 66), and the judge guessed 80 units, then the advocate will get a 86¢ ($1 - (80c - 66c)) bonus." +
-'<p> <br> <img src="images/Example_Sticks.png"></img> <\p>';
-
-var incentivization_high = "To incentivize this, the advocate will earn a higher bonus when the judge's guess is higher. Specifically, the advocate will not start out with a bonus, but will gain 2c for each unit that the judge guesses above 0." + 
-"So for instance if this is the set of sticks that were initially drawn (true mean is 66), and the judge guessed 80 units, then the advocate will get an 80¢ bonus." +
-'<p> <br> <img src="images/Example_Sticks.png"></img> <\p>';
-
-var incentivization_low = "To incentivize this, the advocate will earn a higher bonus when the judge's guess is lower. Specifically, the advocate will start out with a bonus of $1.00, but will lose 2c for each unit that the judge's guess is above 0." +
-"So for instance if this is the set of sticks that were initially drawn (true mean is 66), and the judge guessed 30 units, then the advocate will get a 70¢ ($1 - 30c) bonus." +
-'<p> <br> <img src="images/Example_Sticks.png"></img> <\p>';
-
-if (advocate_goal == "high"){
-    var page6_html = page6_start + incentivization_high;
-}else if (advocate_goal == "low"){
-    var page6_html = page6_start + incentivization_low;
-}else{
-    var page6_html = page6_start + incentivization_truthful;
-}
-
-var page7_html = "<p> You will be the " + participant_role + " <\p>" + 
-"<p> You will need to pass an instruction quiz before begining the task. Getting any questions wrong will require you to re-read the instructions. <\p>"
+var page1_html = `
+<div class="instruction-page">
+    <div class="title"></div>
+    <div class="section">
+        <p>${n_trial_condition === "multi" 
+            ? "In this task, you will play a series of games. For each game,"
+            : "In this task,"} two participants will be paired up. One participant will be the <span class="role">advocate</span> and the other will be the <span class="role">judge</span>. Their choices will together determine each other's bonus payment.</p>
+        <p>${n_trial_condition === "multi" 
+            ? "Each game will work as follows:"
+            : "The task will work as follows:"}</p>
+        <ol>
+            
+                <p>First, 20 sticks will be randomly drawn (example shown below). The sticks will vary in height. The height of each stick is printed below each stick.</p>
+                <img src="images/Sticks_Random.png" alt="Randomly arranged sticks" class="consistent-image">
+            
+                <p>The sticks will be arranged such that the shortest are on the left and the tallest are on the right.</p>
+                <img src="images/Sticks_Ordered.png" alt="Ordered sticks" class="consistent-image">
+            
+        </ol>
+    </div>
+    <div class="section">
+        <p>${covered_condition 
+            ? "The advocate will be presented with a screen where each stick is covered by a box, as shown below. The advocate will not know the height of the sticks behind each box, but will know that the sticks are ordered with the shortest on the left and the tallest on the right. Thus, the advocate will know the sticks' order but not their height."
+            : "The advocate will be presented with a screen like the one above and will see the height of each stick."}</p>
+        ${covered_condition 
+            ? `<img src="images/Sticks_Covered.png" alt="Sticks as seen by advocate" class="consistent-image">`
+            : ''
+        }
+        <p>The advocate will then select 5 of the sticks to reveal to the judge by clicking on the check-boxes below each stick they want to select.</p>
+    </div>
+</div>
+`;
 
 
-var covered_pages = [
-    page1_html,
-    page1b_boxes_covered_html,
-    page2_html,
-    page2b_boxes_covered_html,
-    page3_html,
-    page4_html,
-    page5_html,
-    page6_html,
-    page7_html
-];
 
-var uncovered_pages = [
-    page1_html,
-    page2_html,
-    page3_html,
-    page4_html,
-    page5_html,
-    page6_html,
-    page7_html
-];
+var page2_html = `
+<div class="instruction-page">
+    <div class="title"></div>
+    <div class="section">
+        <p>The judge will see the results of the advocate's selections. An example is shown below:</p>
+        <img src="images/Sticks_Judge_View.png" alt="Sticks as seen by judge" width="200">
+        <p>The judge will then guess the average height of ALL 20 of the sticks that were in the initial draw (NOT just the ones that were revealed). They will write their guess into a prompt.</p>
+    </div>
+</div>
+`;
 
-if (covered_condition){
-    var instruction_pages = covered_pages;
-}else{
-    var instruction_pages = uncovered_pages;
-}
+var page3_html = `
+<div class="instruction-page">
+    <div class="title"></div>
+    <div class="section">
+        <p>The judge's goal is to make as accurate a guess as possible about the average height of all 20 sticks. To incentivize this, the judge will earn a higher bonus the closer their guess is to the true average of the original 20 sticks.</p>
+        Bonus calculation: The judge will start with a bonus of $1. However, out of this bonus, they will lose 2¢ for each 'unit' away from the true value that they guess.</p>
+    </div>
+    <div class="section">
+        ${n_trial_condition === "multi" 
+            ? `<p>The advocate's goal will differ for the different games:</p>
+               <ul>
+                 <li><strong>Accurate guess games:</strong> The advocate's goal will be for the judge to make as accurate a guess as possible. In these games, they will be bonused the same as the judge.</li>
+                 <li><strong>High guess games:</strong> The advocate's goal will be for the judge to make as high a guess as possible. The advocate will earn a higher bonus when the judge's guess is higher. Specifically, the advocate will not start out with a bonus, but will gain 2¢ for each unit that the judge guesses above 0.</li>
+                 <li><strong>Low guess games:</strong> The advocate's goal will be for the judge to make as low a guess as possible. The advocate will earn a higher bonus when the judge's guess is lower. Specifically, the advocate will not start out with a bonus, but will gain 2¢ for each unit that the judge guesses below 100.</li>
+               </ul>
+               <p>Both the advocate and the judge will be told the advocate's goal prior to each game, before making any choices or guesses for that game.</p>`
+            : `<p>The advocate's goal is for the judge to make as ${advocate_goal} a guess as possible.</p>
+               <p>Bonus calculation: ${advocate_goal === "accurate" 
+                 ? "The advocate's bonus will be equivalent to the judge's bonus."
+                 : advocate_goal === "high"
+                   ? "The advocate will earn a higher bonus when the judge's guess is higher. Specifically, the advocate will not start out with a bonus, but will gain 2¢ for each unit that the judge guesses above 0."
+                   : "The advocate will earn a higher bonus when the judge's guess is lower. Specifically, the advocate will not start out with a bonus, but will gain 2¢ for each unit that the judge guesses below 100."
+               }</p>`
+        }
+    </div>
+</div>
+`;
 
-// instruction_pages = []
+var page4_html = `
+<div class="instruction-page">
+    <div class="title"></div>
+    <div class="section">
+        <p>You will play the role of the <span class="role">${participant_role.toUpperCase()}</span></p>
+        ${n_trial_condition === "multi"
+            ? `<p>${participant_role === "judge" 
+                ? "You will play the game 4. You will receive selections from an advocate that has already played the game. Before each is shown, you will see what the advocate's goal was before they made the selection."
+                : "You will play the game 4 times. You will be notified of your goal prior to each game."}</p>
+               <p>Bonus calculation: The bonus that you receive will be based on a single randomly drawn game.</p>
+               ${participant_role === "advocate" 
+                 ? "<p>Your total earnings will be calculated after you have been paired with a judge and thus may not show up in your account for a few weeks.</p>"
+                 : ""
+               }`
+            : ""
+        }
+    </div>
+    <div class="section">
+        <p><You will need to complete a quiz before starting the task.</p>
+    </div>
+</div>`;
+
+var instruction_pages = [page1_html, page2_html, page3_html, page4_html]
 
 var instruction_trial = {
     type: jsPsychInstructions,
@@ -114,6 +167,10 @@ if (advocate_goal === "accurate"){
     var ad_q_correct = 1;
 }else{
     var ad_q_correct = 2;
+}
+
+if (n_trial_condition === "multi"){
+  var ad_q_correct = 3;
 }
 
 
@@ -199,7 +256,6 @@ var conditional_start_quiz_incorrect = { //
   }
 
 
-
 var quiz_questions = [
     {
       prompt: "What is your role in this experiment?",
@@ -233,7 +289,7 @@ var quiz_questions = [
     },
     {
         prompt: "What is the advocate's goal?",
-        options: ["Judge to make an accurate guess", "Judge to make a high guess", "Judge to make a low guess"],
+        options: ["Judge to make an accurate guess", "Judge to make a high guess", "Judge to make a low guess", "This may differ for each game"],
         correct: ad_q_correct// correct index
       }
     // Add more questions as needed
