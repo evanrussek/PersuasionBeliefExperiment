@@ -203,3 +203,29 @@ body {
 
 /* disable clicks on sticks during guess stage */
 .no-pointer .stick-wrapper { pointer-events: none; }
+
+/* ─────────────────────  instruction text formatting  ───────────────────── */
+#instruction-text {
+  max-width: 800px;
+  margin: 0 auto 30px;
+  text-align: left;
+  line-height: 1.6;
+  font-size: 16px;
+}
+
+#instruction-text p {
+  margin-bottom: 15px;
+}
+
+#instruction-text strong {
+  color: #2c3e50;
+}
+
+/* Make the goal summary stand out */
+#instruction-text p:has(strong:contains("Your goal")) {
+  background-color: #f8f9fa;
+  padding: 15px;
+  border-left: 4px solid #3498db;
+  border-radius: 4px;
+  margin: 20px 0;
+}

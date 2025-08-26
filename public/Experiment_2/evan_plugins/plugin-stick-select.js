@@ -37,6 +37,12 @@ var jsPsychStickSelect = (function (jspsych) {
                 type: jspsych.ParameterType.STRING,
                 pretty_name: 'Button label',
                 default: 'Continue'
+            },
+            incentive_condition: {
+                type: jspsych.ParameterType.STRING,
+                pretty_name: 'Incentive Condition',
+                default: 'Accurate',
+                description: 'One of "High", "Low", or "Accurate".'
             }
         }
     };
@@ -85,6 +91,23 @@ var jsPsychStickSelect = (function (jspsych) {
                 return selected.reduce((a, b) => a + (b ? 1 : 0), 0);
             }
 
+            // Build concise condition reminder about the judge and the goal
+            function conditionReminderHTML() {
+                const c = (trial.incentive_condition || 'Accurate').toLowerCase();
+                let goalLine;
+                if (c === 'high') {
+                    goalLine = 'Judge to make <strong>HIGHER</strong> guess';
+                } else if (c === 'low') {
+                    goalLine = 'Judge to make <strong>LOWER</strong> guess';
+                } else {
+                    goalLine = 'Judge to make <strong>ACCURATE</strong> guess';
+                }
+                return (
+                    '<p><strong>Your goal:</strong> ' + goalLine + '.<br>' +
+                    '<strong>Number of sticks to cover:</strong> ' + trial.N_Sticks_Covered + '</p>'
+                );
+            }
+
             // ───────────────────────────────────────────────────────────────────────────────
             // STAGE 1: SELECTION PHASE - User clicks sticks to cover them
             // ───────────────────────────────────────────────────────────────────────────────
@@ -92,8 +115,11 @@ var jsPsychStickSelect = (function (jspsych) {
                 // Build instruction text for the selection phase
                 const top =
                     `<p><strong>Round ${trial.trial_number} of ${trial.total_trials}</strong></p>
-                     In this round, ${trial.N_Sticks_Drawn} new sticks were drawn, with random values between 1 and 100.
-                     <br>Click on ${trial.N_Sticks_Covered} sticks you want to cover, then press Continue.`;
+                     ${conditionReminderHTML()}
+                     <p>${trial.N_Sticks_Drawn} new sticks were drawn, with random values between 1 and 100. In this round you need to cover ${trial.N_Sticks_Covered} of these sticks.</p>
+                     <p>Your goal for this round is to select sticks that will cause the judge to make a <strong>${trial.incentive_condition === 'High' ? 'HIGHER' : trial.incentive_condition === 'Low' ? 'LOWER' : 'MORE ACCURATE'}</strong> guess about the mean of all the drawn sticks.</p>
+                     <p>The judge will guess the mean of all the drawn sticks (including the ones you choose to cover). They will only see the heights of the sticks that you don't cover. They will not see the sticks that you cover, or the relative position of the uncovered sticks.</p>
+                     <p>Click below on the sticks you want to cover.</p>`;
 
                 // Build the complete selection screen HTML
                 // Note: response-area is reserved but hidden to prevent layout shift later
@@ -215,7 +241,8 @@ var jsPsychStickSelect = (function (jspsych) {
                         response_time_guess: response_time_guess,
                         N_Bad_Guesses: bad_guess_count,
                         N_Sticks_Drawn: trial.N_Sticks_Drawn,
-                        N_Sticks_Covered: trial.N_Sticks_Covered
+                        N_Sticks_Covered: trial.N_Sticks_Covered,
+                        incentive_condition: trial.incentive_condition || 'Accurate'
                     };
 
                     // Clear display and end the trial
