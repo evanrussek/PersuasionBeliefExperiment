@@ -1,11 +1,11 @@
-var jsPsychStickSelect = (function (jspsych) {
+var jsPsychStickAdvocate = (function (jspsych) {
     'use strict';
 
     // ───────────────────────────────────────────────────────────────────────────────
     // PLUGIN INFO: Defines parameters for the stick selection trial
     // ───────────────────────────────────────────────────────────────────────────────
     const info = {
-        name: "stick-select",
+        name: "stick-advocate",
         parameters: {
             stick_lengths: {
                 type: jspsych.ParameterType.ARRAY,
@@ -50,7 +50,7 @@ var jsPsychStickSelect = (function (jspsych) {
     // ───────────────────────────────────────────────────────────────────────────────
     // MAIN PLUGIN CLASS: Handles the two-stage trial (selection + guessing)
     // ───────────────────────────────────────────────────────────────────────────────
-    class StickSelectPlugin {
+    class StickAdvocatePlugin {
         constructor(jsPsych) {
             this.jsPsych = jsPsych;
         }
@@ -190,10 +190,13 @@ var jsPsychStickSelect = (function (jspsych) {
                 container.classList.add('no-pointer');
                 const response = display_element.querySelector('#response-area');
                 
+                // Build the guess prompt text (always use the "surprise" text)
+                const guessPrompt = `We actually now would like you to make a guess for the average length of <strong>all</strong> ${trial.N_Sticks_Drawn} sticks (<strong>including</strong> the ones you just covered). If this round is selected, you will be additionally bonused based on the accuracy of this guess.`;
+
                 // Fill the response area with the guess prompt and input
                 response.innerHTML =
-                    `<p>Please enter your guess for the average stick length of <strong>all</strong> ${trial.N_Sticks_Drawn} sticks (<strong>including</strong> the ones you just covered).</p>` +
                     '<div id="guess-container">' +
+                        `<p class="guess-prompt">${guessPrompt}</p>` +
                         '<label for="stick-average-guess"></label>' +
                         '<input  type="text"                              ' +
                                 'id="stick-average-guess"                   ' +
@@ -254,8 +257,8 @@ var jsPsychStickSelect = (function (jspsych) {
     }
 
     // Export the plugin class
-    StickSelectPlugin.info = info;
-    return StickSelectPlugin;
+    StickAdvocatePlugin.info = info;
+    return StickAdvocatePlugin;
 
 })(jsPsychModule);
 

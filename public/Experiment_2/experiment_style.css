@@ -27,6 +27,14 @@ body {
     position: relative; /* Ensure stick container is positioned relative to allow absolute positioning of rectangles */
   }
 
+  /* unify guess prompt styles across trials */
+  .guess-prompt {
+    font-size: 18px;
+    line-height: 1.6;
+    margin: 0 0 10px 0;
+    font-family: Arial, sans-serif;
+  }
+
     /* Style for each stick container */
     .stick-wrapper {
         display: inline-block;
@@ -162,15 +170,29 @@ body {
 /*  display: flex; */
   justify-content: center; /* Center horizontally */
   margin: 40px auto; /* Add some space */
-  padding: 20px 20px;
+  padding: 16px 20px 20px 20px; /* a little tighter top padding */
   border: 2px solid #333; /* Add a border */
   border-radius: 12px; /* Optional: rounded corners */
   background-color: #fff; /* Optional: make it stand out */
   width: fit-content; /* Fit content width */
-  height: 150px; /* Adjust to match the tallest possible stick */
+  min-height: 150px; /* Allow to grow if header present */
   align-items: center; /* Ensures sticks are aligned at the bottom */
   overflow: hidden; /* Prevents elements from going outside the box */
 
+}
+
+/* Header text shown inside example rectangles on instruction page */
+.example-header {
+  text-align: left;
+  margin: 0;              /* avoid margin-collapse with sticks-row */
+  padding-bottom: 14px;   /* ensure clear separation above bars */
+  font-size: 16px;
+}
+
+/* Ensure sticks are visually below the header */
+.sticks-row {
+  margin-top: 0;
+  padding-top: 4px; /* extra buffer to be safe */
 }
 
 /* ─────────────────────  consent-screen overrides  ─────────────────────
@@ -210,7 +232,8 @@ body {
   margin: 0 auto 30px;
   text-align: left;
   line-height: 1.6;
-  font-size: 16px;
+  font-size: 18px;
+  font-family: Arial, sans-serif;
 }
 
 #instruction-text p {

@@ -1,171 +1,131 @@
-// Initialize jsPsych
-const jsPsych = initJsPsych();
+// Advocate-focused instructions for the click-to-cover task
 
-
-// define condition here
-
-// https://spinproject-39dd6.web.app/version_1/?ROLE=advocate&COVERED=false&GOAL=high&N_TRIAL=multi
-
-
-
-
-// TODO -- DISCUSS BONUS w/ TOM
-
-var initial_bonus = 2;
-var penalty_cents = 4;
-
-// ENTER PARAMETERS FOR TASK - SHOULD THESE BE PRE-DRAWN?
-var Max_Stick_Length = 100
-var Min_Stick_Length = 1 
-
-// condition is 
-var N_Trials = 27;
+// Parameters (match the task in index.js)
+var Max_Stick_Length = 100;
+var Min_Stick_Length = 1;
 var N_Sticks_Drawn = 10;
-var Trial_N_Sticks_Covered = 6;
+var N_Rounds = 25; // number of rounds
 
-var page1_html = `<div class="instruction-page">
-    <div class="title"><h2>Welcome to the Study!</h2></div>
+// Participant role from URL (?ROLE=advocate|judge), default judge
+var participant_role = (typeof getQueryVariable === 'function' && getQueryVariable('ROLE')) ? getQueryVariable('ROLE') : 'judge';
+participant_role = String(participant_role).toLowerCase();
+var roleQuestionCorrectIdx = (participant_role === 'advocate') ? 0 : 1;
 
-    <div class="section">
-
-        <p>In this study, we are interested in how people make judgements given limited information. </p>
-        <p>You will complete <strong>${N_Trials} rounds</strong>. In each round, we will randomly draw a <strong>bundle of 10 sticks</strong>, each with a height between <strong>1 and 100</strong>.</p>
-        
-        <p>However, you <strong>won't see all the sticks</strong>—some will be <strong>covered</strong>:</p>
-        <ul>
-            <li>The visible sticks might be the <strong>tallest</strong>, the <strong>shortest</strong>, or <strong> randomly </strong> selected.</li>
-            <li>The number of covered sticks will <strong>vary by round</strong> and whether they are the tallest, shortest or randomly selected will vary by round.</li>
-        </ul>
-    </div>
-
-    <div class="section">
-        <h3>Your Task</h3>
-        <p>Your job in each round will be to estimate the <strong>average height</strong> of all <strong>10 sticks</strong>, including the covered ones.</p>
-    </div>
-
-    <div class="section">
-        <h3>Payment</h3>
-        <p>The closer your guess is to the correct average, the <strong>higher your final bonus</strong> will be.</p>
-        <p>Your <strong>bonus</strong> will be determined as follows:</p>
-        <ul>
-            <li>One round will be selected at random to determine your bonus.</li>
-            <li>You start with a <strong>${2}$ bonus</strong>.</li>
-            <li>For each point (rounded down) that your guess differs from the true average, your bonus will decrease by <strong>${penalty_cents} cents</strong>.</li>
-        </ul>
-    </div>
-</div>`
-
-
-// this will display the sticks... 
-function display_sticks(sticksHTML, stickLengths, stickCovered){
-    var cover_sticks = false;
+// Helper to build a sticks display using existing styles
+function renderSticksHTML(stickLengths, coveredMask) {
+    var html = '';
+    var showMask = Array.isArray(coveredMask) && coveredMask.length === stickLengths.length;
     for (var i = 0; i < stickLengths.length; i++) {
-        // Add HTML for each stick, its length text, and checkbox
-        sticksHTML += '<div class="stick-container">' +
-            '<div class="stick-wrapper">' +
-            '<div class="stick" style="height:' + stickLengths[i] + 'px;"></div>' +
-            '<div class="stick-length">' + stickLengths[i] + '</div>' +
-            '<div class="rectangle" style="' + (stickCovered[i] ? 'display: block;' : 'display: none;') + '"></div>' +
-            '</div>';
-
-        sticksHTML+= '</div>'
-
+        html += '<div class="stick-container">' +
+                    '<div class="stick-wrapper">' +
+                        '<div class="stick" style="height:' + stickLengths[i] + 'px;"></div>' +
+                        '<div class="stick-length">' + stickLengths[i] + '</div>' +
+                        '<div class="rectangle" style="' + (showMask && coveredMask[i] ? 'display: block;' : 'display: none;') + '"></div>' +
+                    '</div>' +
+                '</div>';
     }
-    return sticksHTML
+    return html;
 }
 
-var stickLengths = generateRandomStickLengths(N_Sticks_Drawn, Max_Stick_Length, Min_Stick_Length);
-var stickCovered = Array(stickLengths.length).fill(false);
-
-var complete_sticks_HTML = '';
-complete_sticks_HTML = display_sticks(complete_sticks_HTML, stickLengths, stickCovered);
-
-// Assuming you'll want to show only a subset of sticks for the second display
-// You'll need to modify this based on how you want to select the visible sticks
-var visible_sticks_HTML = '';
-//var visible_sticks = original_stick_values_for_selection.slice(-4); // showing only X tallest sticks
-var random_indices = jsPsych.randomization.sampleWithoutReplacement(Array(stickLengths.length).fill().map((x,i)=>i), Trial_N_Sticks_Covered);
-for (var i = 0; i < random_indices.length; i++){
-    stickCovered[random_indices[i]] = true;
+// Helper to render what the judge sees: only uncovered sticks (ordered), no rectangles
+function renderJudgeViewHTML(stickLengths, coveredMask) {
+    var html = '';
+    for (var i = 0; i < stickLengths.length; i++) {
+        if (coveredMask && coveredMask[i]) continue; // skip covered
+        html += '<div class="stick-container">' +
+                    '<div class="stick-wrapper">' +
+                        '<div class="stick" style="height:' + stickLengths[i] + 'px;"></div>' +
+                        '<div class="stick-length">' + stickLengths[i] + '</div>' +
+                    '</div>' +
+                '</div>';
+    }
+    return html;
 }
 
-visible_sticks_HTML = display_sticks(visible_sticks_HTML, stickLengths, stickCovered);
+// Build example stimuli dynamically (no stored images)
+var example_lengths = generateRandomStickLengths(N_Sticks_Drawn, Max_Stick_Length, Min_Stick_Length);
 
-// Calculate mean for the example
-var mean = stickLengths.reduce((a, b) => a + b) / stickLengths.length;
-var example_guess = 65; // You can set this to whatever value you want
-var bonus_reduction = Math.round(Math.abs(mean - example_guess) * penalty_cents); // edit this
+function maskFromIndices(indices, length) {
+    var mask = Array(length).fill(false);
+    for (var j = 0; j < indices.length; j++) mask[indices[j]] = true;
+    return mask;
+}
+
+function sampleIndices(count, maxExclusive) {
+    var pool = Array(maxExclusive).fill().map(function(_, i){ return i; });
+    // Use jsPsych randomization if available
+    if (window.jsPsych && window.jsPsych.randomization && window.jsPsych.randomization.sampleWithoutReplacement) {
+        return window.jsPsych.randomization.sampleWithoutReplacement(pool, count);
+    }
+    // Fallback simple shuffle
+    for (var i = pool.length - 1; i > 0; i--) {
+        var r = Math.floor(Math.random() * (i + 1));
+        var tmp = pool[i]; pool[i] = pool[r]; pool[r] = tmp;
+    }
+    return pool.slice(0, count);
+}
+
+var cover3_mask = maskFromIndices(sampleIndices(3, N_Sticks_Drawn), N_Sticks_Drawn);
+var cover5_mask = maskFromIndices(sampleIndices(5, N_Sticks_Drawn), N_Sticks_Drawn);
+
+var all_sticks_html = renderSticksHTML(example_lengths, []);
+var cover3_html = renderSticksHTML(example_lengths, cover3_mask);
+var cover5_html = renderSticksHTML(example_lengths, cover5_mask);
+
+////////////////////////////////////
+////////// Define instructions //////
+////////////////////////////////////
+
+var page1_html = `
+<div class="instruction-page">
+  <div class="section">
+    <p>In this study, we are interested in understanding how persuasion works.</p>
+    <p>You will be assigned a role for the entire study: <strong>Judge</strong> or <strong>Advocate</strong>. The study consists of ${N_Rounds} rounds. In each round, ${N_Sticks_Drawn} sticks with heights between ${Min_Stick_Length} and ${Max_Stick_Length} will be drawn. The Advocate will see the heights of all ${N_Sticks_Drawn} sticks and will choose some number of sticks to cover. The Judge will see only the heights of the uncovered sticks. They will then estimate the average height of all ten sticks, including the covered ones that they did not see.</p>
+    <p>The Judge's goal is always to make an accurate estimate. The Advocate's goal changes by round and will be shown on screen: to make the Judge's estimate higher, lower, or accurate.</p>
+    <p>After the task, one round will be chosen at random to determine bonuses. Both players start that round with $1.50. The Judge loses $0.02 for each point their estimate differs from the true average. If the Advocate's goal is to make the Judge’s estimate higher, they lose $0.02 for each point the Judge's estimate is below 100. If the goal is to make the Judge’s estimate lower, they lose $0.02 for each point the estimate is above 0. If the goal is for the Judge to be accurate, the Advocate loses $0.02 for each point the estimate differs from the true average (the same rule as the Judge).</p>
+    <p>The number of sticks that the Advocate must cover will vary by round. When the Judge makes a guess, they will be told the Advocate's goal for that round and how many sticks were covered. They will also be told the Judge's goal for that round and the number of sticks the Advocate covered. The Judge does not see which sticks were covered and sees only the heights of the uncovered sticks.</p>
+    <p><strong>You will play the role of the ${participant_role.toUpperCase()}</strong>.</p>
+  </div>
+</div>`;
+
+// Example round variables
+var Example_N_Cover = 5;
+var example_condition = (Math.random() < 0.5) ? 'High' : 'Low';
+var example_cover_mask = maskFromIndices(sampleIndices(Example_N_Cover, N_Sticks_Drawn), N_Sticks_Drawn);
+var example_cover_html = renderSticksHTML(example_lengths, example_cover_mask);
+var judge_view_html = renderJudgeViewHTML(example_lengths, example_cover_mask);
+var mean_value = example_lengths.reduce(function(a, b){ return a + b; }, 0) / example_lengths.length;
+var mean_rounded = Math.round(mean_value);
+var example_guess = 65;
+var judge_points_off = Math.abs(example_guess - mean_rounded);
+var judge_bonus = (1.5 - 0.02 * judge_points_off).toFixed(2);
+var adv_penalty_cents = (example_condition === 'High') ? Math.max(0, 100 - example_guess) : Math.max(0, example_guess - 0);
+var adv_bonus = (1.5 - 0.02 * adv_penalty_cents).toFixed(2);
+var adv_formula = (example_condition === 'High') ? ('100 - ' + example_guess) : (example_guess + ' - 0');
 
 var page2_html = `
 <div class="instruction-page">
-    <div class="title"></div>
-    <div class="section">
-        <p>Here's an example to help you understand how it works:</p>
-        <p>Imagine these are the heights of the 10 sticks that are drawn:</p>
-    </div>
-    <div class="section">
-        <div class="sticks-display">
-            ${complete_sticks_HTML}
-        </div>
-    </div>
-    <div class="section">
-        <p>The mean of this pile is ${mean.toFixed(0)}.</p>
-        <p>Imagine that in this trial, 6 randomly selected sticks were covered.</p>
-        <p>Then, this is what would be shown to you:</p>
-    </div>
-    <div class="section">
-        <div class="sticks-display">
-            ${visible_sticks_HTML}
-        </div>
-    </div>
-    <div class="section">
-        <p>Then you would be asked to guess the average of the 10 originally drawn sticks (including the 6 that you didn't see).</p>
-        <p>If this round is selected, your bonus will be based on the distance between your estimate and the true average (47).</p>
-
-        <p>Suppose you guess ${example_guess}. Recall, the correct average was ${mean.toFixed(0)}. Therefore, your bonus would be reduced by ${bonus_reduction} cents.</p>
-    </div>
-        <div class="section">
-        <p>You will need to pass a quiz on these instructions before beginning the task.</p>
-    </div>
-</div>
-`;
-
-var page2_html = `<div class="instruction-page">
-    <div class="title"><h2>Example</h2></div>
-
-    <div class="section">
-        <p>Here's an example to help you understand how the task works.</p>
-        <p>Imagine these are the heights of the 10 sticks that were drawn:</p>
-    </div>
-
-    <div class="section">
-        <div class="sticks-display">
-            ${complete_sticks_HTML}
-        </div>
-    </div>
-
-    <div class="section">
-        <p>The average height of these sticks is <strong>${mean.toFixed(0)}</strong>.</p>
-        <p>Now, suppose in this trial, <strong>6 randomly selected sticks</strong> were covered.</p>
-        <p>This is what would be shown to you:</p>
-    </div>
-
-    <div class="section">
-        <div class="sticks-display">
-            ${visible_sticks_HTML}
-        </div>
-    </div>
-
-    <div class="section">
-        <p>Your task would be to estimate the <strong>average height</strong> of all 10 sticks, including the ones you couldn’t see.</p>
-        <p>For example, if you guessed <strong>${example_guess}</strong> and the true mean was <strong>${mean.toFixed(0)}</strong>, your bonus would be reduced by <strong>${bonus_reduction} cents</strong>.</p>
-    </div>
-
-    <div class="section">
-        <p><strong>Before beginning the task, you must pass a short quiz on these instructions.</strong></p>
-    </div>
-</div>`
-
+  <div class="title"><h2>Example round</h2></div>
+  <div class="section">
+    <p>Below is an example round where the advocate needs to cover ${Example_N_Cover} sticks and their goal is for the judge to make a ${example_condition} guess.</p>
+    <p>First, the advocate will be shown all ${N_Sticks_Drawn} sticks that were drawn along with their heights:</p>
+    <div class="sticks-display"><div class="example-header"><strong>Your goal:</strong> Judge to make <strong>${example_condition === 'High' ? 'HIGHER' : 'LOWER'}</strong> guess.<br><strong>Number of sticks to cover:</strong> ${Example_N_Cover}</div><div class="sticks-row">${all_sticks_html}</div></div>
+  </div>
+  <div class="section">
+    <p>Then the advocate will click on which sticks they want to cover. Suppose the advocate covered these sticks:</p>
+    <div class="sticks-display"><div class="example-header"><strong>Your goal:</strong> Judge to make <strong>${example_condition === 'High' ? 'HIGHER' : 'LOWER'}</strong> guess.<br><strong>Number of sticks to cover:</strong> ${Example_N_Cover}</div><div class="sticks-row">${example_cover_html}</div></div>
+  </div>
+  <div class="section">
+    <p>The display below shows what the judge would then see. The judge will see the heights of the <em>uncovered</em> sticks. They will be told how many sticks were covered, as well as the Advocate's goal. However, they will <em>not</em> see which positions were uncovered.</p>
+    <div class="sticks-display"><div class="example-header"><strong>Advocate's goal:</strong> You to make <strong>${example_condition === 'High' ? 'HIGHER' : 'LOWER'}</strong> guess.<br><strong>Number of sticks they covered:</strong> ${Example_N_Cover}</div><div class="sticks-row">${judge_view_html}</div></div>
+  </div>
+  <div class="section">
+    <p>The judge will then make a guess about the average of the ${N_Sticks_Drawn} sticks that were originally drawn. Suppose they guess <strong>${example_guess}</strong>. In this round, the true average of the original sticks is <strong>${mean_rounded}</strong>.</p>
+    <p>Judge bonus: $1.50 − $0.02 × |${example_guess} − ${mean_rounded}| = <strong>$${judge_bonus}</strong></p>
+    <p>Because the advocate’s goal for this round is <strong>${example_condition}</strong>, their bonus is:</p>
+    <p>Advocate bonus: $1.50 − $0.02 × (${adv_formula}) = <strong>$${adv_bonus}</strong></p>
+  </div>
+</div>`;
 
 var instruction_pages = [page1_html, page2_html];
 
@@ -173,126 +133,111 @@ var instruction_trial = {
     type: jsPsychInstructions,
     pages: instruction_pages,
     show_clickable_nav: true
-}
+};
+
+/////////////////////////
+/// Comprehension quiz ///
+/////////////////////////
 
 var quiz_questions = [
     {
-        prompt: "Each round, how many sticks will be drawn?",
+        prompt: "What role will you play in this study?",
         options: [
-            "5",
-            "10",
-            "15",
-            "20"
+            "Advocate",
+            "Judge"
         ],
-        correct: 1  // Correct answer: 10
+        correct: roleQuestionCorrectIdx
     },
     {
-        prompt: "Will you always see all 10 sticks in a round?",
+        prompt: "What should the Judge estimate?",
         options: [
-            "Yes, all sticks will always be visible.",
-            "No, some sticks will be covered, and the number covered may vary by round.",
-            "No, but the same number of sticks is always covered in every round.",
-            "Yes, but only if I get the previous round correct."
+            "The average height of all 10 sticks, including those that were covered",
+            "The average height of the uncovered sticks only",
+            "The number of sticks covered"
         ],
-        correct: 1  // Correct answer: Some sticks will be covered, and the number varies
+        correct: 0
     },
     {
-        prompt: "How are the covered sticks selected?",
+        prompt: "What does the Judge see before making a guess?",
         options: [
-            "They are always the tallest sticks.",
-            "They are always the shortest sticks.",
-            "They might be the tallest, shortest, or randomly selected."
+            "Only the heights of uncovered sticks (not positions of covered sticks)",
+            "All 10 sticks and their heights",
+            "Which positions were covered but not their heights"
         ],
-        correct: 2  // Correct answer: Selection varies
+        correct: 0
     },
     {
-        prompt: "What is your task in each round?",
+        prompt: "How many sticks should the Advocate cover each round?",
         options: [
-            "Guess the height of the tallest stick.",
-            "Guess the average height of the sticks whose height you can see.",
-            "Guess the average height of all sticks that were drawn, including those that are covered.",
-            "Count the number of sticks taller than 50."
+            "Any number they choose",
+            "Exactly the number shown for that round"
         ],
-        correct: 2  // Correct answer: Estimate the full bundle’s average height
+        correct: 1
     },
     {
-        prompt: "How does the payment work in this study?",
+        prompt: "Before the Judge makes a guess, are the Advocate's goal and the number of covered sticks shown?",
         options: [
-            "You receive a flat payment of $2.",
-            "You start with a $2 bonus, which remains the same regardless of your guesses.",
-            `You start with a $${initial_bonus} bonus, reduced by ${penalty_cents} cents for each point your guess is off from the correct answer.`,
-            "You earn 50 cents for each correct answer."
+            "Shown",
+            "Not shown"
         ],
-        correct: 2  // Correct answer: Bonus is reduced based on error
+        correct: 0
+    },
+    {
+        prompt: "What does the Judge's bonus depend on?",
+        options: [
+            "How close the Judge's estimate is to the true average",
+            "Whether the estimate matches the Advocate's goal",
+            "How many sticks were uncovered"
+        ],
+        correct: 0
     }
 ];
 
+var instruction_correct = false;
 
- // Define the quiz trial
+var instruction_check = {
+    type: jsPsychSurveyMultiChoice,
+    questions: quiz_questions,
+    preamble: "You will need to pass a quiz on the instructions before beginning the task. Getting a single question incorrect will require you to re-read the instructions.",
+    on_finish: function(quiz_data) {
+        var quiz_responses = quiz_data.response;
+        var total_correct = 0;
+        var incorrect_questions = ['<br> </br'];
+        for (var i = 0; i < quiz_questions.length; i++) {
+            var correct_response = quiz_questions[i].options[quiz_questions[i].correct];
+            var participant_response = quiz_responses['Q'+i];
+            if (correct_response === participant_response) {
+                total_correct++;
+            } else {
+                incorrect_questions.push('<br>' + quiz_questions[i].prompt);
+            }
+        }
+        // Store incorrect questions for display
+        window.incorrect_questions = incorrect_questions;
+        if (total_correct === quiz_questions.length) {
+            instruction_correct = true;
+        }
+    }
+};
 
- var instruction_correct = false;
+var splash_screen = {
+    type: jsPsychHtmlButtonResponse,
+    timing_post_trial: 0,
+    choices: ['Click here to read the instructions again'],
+    is_html: true,
+    stimulus: function(){
+        var incor_q = window.incorrect_questions || ['No questions available'];
+        var next_stimulus = 'The following questions were answered incorrectly: ' + incor_q;
+        return next_stimulus;
+    }
+};
 
- var instruction_check = { // this runs the quiz
-   type: jsPsychSurveyMultiChoice,
-   questions: quiz_questions,
-
-   // on finish check which if any questions were incorrect (note - change these so they're not global vars)
-   on_finish: function(quiz_data) {
-
-       quiz_responses = quiz_data.response;
-       // console.log(quiz_responses)
-
-       total_correct = 0;
-
-       incorrect_questions =['<br> </br'];
-
- 
-     for (let i = 0; i < quiz_questions.length; i++) {
-
-       // start w/ an empty array then push onto this incorrect responses
-
-       var correct_response = quiz_questions[i].options[quiz_questions[i].correct];
-       var participant_response = quiz_responses['Q'+i]
-
-       if (correct_response === participant_response) {
-         total_correct++;
-       }else{
-           incorrect_questions.push('<br>' + quiz_questions[i].prompt)
-       }
-     }
-
-     jsPsych.data.addProperties({
-       incorrect_questions: incorrect_questions
-     });
-
-     if (total_correct === quiz_questions.length){
-       instruction_correct = true;
-     }
-
-   } // end on finish
- }; // end quiz trial
-
-/* define a page for the incorrect response */
-var showsplash = true;
-var splash_screen = { // this  is the screen if you answer incorectly
-   type: jsPsychHtmlButtonResponse,
-   timing_post_trial: 0,
-   //    button_html: '<button class="jspsych-btn" style="display:none">%choice%</button>',
-   choices: ['Click here to read the instructions again'],
-   is_html: true,
-   stimulus: function(){
-           var incor_q = jsPsych.data.get().last(1).select('incorrect_questions').values
-           var next_stimulus = 'The following questions were answered incorrectly: ' + incor_q;
-           return next_stimulus
-       }
-}
-
-var conditional_splash = { // 
-   timeline: [splash_screen],
-   conditional_function: function(data) {
-     return !instruction_correct // skip if correct
-     }
- }
+var conditional_splash = {
+    timeline: [splash_screen],
+    conditional_function: function() {
+        return !instruction_correct;
+    }
+};
 
 var intro_loop = [];
 intro_loop.push(instruction_trial);
@@ -300,26 +245,19 @@ intro_loop.push(instruction_check);
 intro_loop.push(conditional_splash);
 
 var intro_loop_node = {
-   timeline: intro_loop,
-   conditional_function: function(data) {
-       return !instruction_correct // skip if correct
- },
-   loop_function: function(data) {
-     var action = true;
-     return !instruction_correct // stop looping if correct
-     }
- }
+    timeline: intro_loop,
+    conditional_function: function() { return !instruction_correct; },
+    loop_function: function() { return !instruction_correct; }
+};
 
- var finish_instruc_screen = {
-   type: jsPsychHtmlButtonResponse,
-   timing_post_trial: 0,
-   //    button_html: '<button class="jspsych-btn" style="display:none">%choice%</button>',
-   choices: ['Begin the task!'],
-   is_html: true,
-   stimulus: 'You passed the quiz! Great work. Press the button to begin the task.'
-}
+var finish_instruc_screen = {
+    type: jsPsychHtmlButtonResponse,
+    timing_post_trial: 0,
+    choices: ['Begin the task!'],
+    is_html: true,
+    stimulus: 'You passed the quiz! Great work. Press the button to begin the task.'
+};
 
-var instruction_timeline = []
-instruction_timeline.push(intro_loop_node)
-//instruction_timeline.push(finish_instruc_screen)
-
+var instruction_timeline = [];
+instruction_timeline.push(intro_loop_node);
+instruction_timeline.push(finish_instruc_screen);
