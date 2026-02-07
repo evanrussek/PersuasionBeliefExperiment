@@ -3,10 +3,10 @@
   <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Single-Trial Advocate + WM</title>
+    <title>Full Experiment</title>
     <script src="jspsych/jspsych.js"></script>
     <script src="evan_plugins/plugin-stick-trial.js"></script>
-    <script src="evan_plugins/plugin-stick-advocate-wm.js"></script>
+    <script src="evan_plugins/plugin-stick-advocate.js"></script>
     <script src="evan_plugins/plugin-stick-judge.js"></script>
     <script src="jspsych/plugin-preload.js"></script>
     <script src="jspsych/plugin-fullscreen.js"></script>
@@ -14,6 +14,7 @@
     <script src="jspsych/plugin-survey-html-form.js"></script>
     <script src="jspsych/plugin-survey-text.js"></script>
     <script src="jspsych/plugin-survey-multi-choice.js"></script>
+    <script src="jspsych/plugin-html-button-response.js"></script>
     <script src="jspsych/plugin-html-keyboard-response.js"></script>
     <script src="jspsych/plugin-instructions.js"></script>
     <link href="jspsych/jspsych.css" rel="stylesheet" type="text/css" />
@@ -27,9 +28,9 @@
       const jsPsych = initJsPsych();
       window.jsPsych = jsPsych;
     </script>
-    <script src="instructions_single_advocate.js"></script>
-    <script type="module" src="index_single_advocate_wm.js" charset="utf-8"></script>
+    <script src="instructions.js"></script>
+    <script type="module" src="index.js" charset="utf-8"></script>
   </body>
-</html>
+  </html>
 
 

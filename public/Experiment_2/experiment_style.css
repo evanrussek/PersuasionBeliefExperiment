@@ -67,7 +67,7 @@ body {
   
   /* Style for the rectangle */
   .rectangle {
-    width: 35px; /* Adjust width as needed */
+    width: 24px; /* Slightly narrower so covered bars don't look oversized */
     height: 180px; /* Adjust height as needed */
     background-color: blue; /* Adjust color as needed */
     position: absolute;

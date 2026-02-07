@@ -6,8 +6,8 @@ var Min_Stick_Length = 1;
 var N_Sticks_Drawn = 10;
 var N_Rounds = 25; // number of rounds
 
-// Participant role from URL (?ROLE=advocate|judge), default judge
-var participant_role = (typeof getQueryVariable === 'function' && getQueryVariable('ROLE')) ? getQueryVariable('ROLE') : 'judge';
+// Participant role from URL (?ROLE=advocate|judge), default advocate
+var participant_role = (typeof getQueryVariable === 'function' && getQueryVariable('ROLE')) ? getQueryVariable('ROLE') : 'advocate';
 participant_role = String(participant_role).toLowerCase();
 var roleQuestionCorrectIdx = (participant_role === 'advocate') ? 0 : 1;
 
@@ -80,7 +80,7 @@ var page1_html = `
 <div class="instruction-page">
   <div class="section">
     <p>In this study, we are interested in understanding how persuasion works.</p>
-    <p>You will be assigned a role for the entire study: <strong>Judge</strong> or <strong>Advocate</strong>. The study consists of ${N_Rounds} rounds. In each round, ${N_Sticks_Drawn} sticks with heights between ${Min_Stick_Length} and ${Max_Stick_Length} will be drawn. The Advocate will see the heights of all ${N_Sticks_Drawn} sticks and will choose some number of sticks to cover. The Judge will see only the heights of the uncovered sticks. They will then estimate the average height of all ten sticks, including the covered ones that they did not see.</p>
+    <p>This study involves two plaeyrs: a <strong>Judge</strong> and an <strong>Advocate</strong>. The study consists of ${N_Rounds} rounds. In each round, ${N_Sticks_Drawn} sticks with heights between ${Min_Stick_Length} and ${Max_Stick_Length} will be drawn. The Advocate will see the heights of all ${N_Sticks_Drawn} sticks and will choose some number of sticks to cover. The Judge will see only the heights of the uncovered sticks. They will then estimate the average height of all ten sticks, including the covered ones that they did not see.</p>
     <p>The Judge's goal is always to make an accurate estimate. The Advocate's goal changes by round and will be shown on screen: to make the Judge's estimate higher, lower, or accurate.</p>
     <p>After the task, one round will be chosen at random to determine bonuses. Both players start that round with $1.50. The Judge loses $0.02 for each point their estimate differs from the true average. If the Advocate's goal is to make the Judge’s estimate higher, they lose $0.02 for each point the Judge's estimate is below 100. If the goal is to make the Judge’s estimate lower, they lose $0.02 for each point the estimate is above 0. If the goal is for the Judge to be accurate, the Advocate loses $0.02 for each point the estimate differs from the true average (the same rule as the Judge).</p>
     <p>The number of sticks that the Advocate must cover will vary by round. When the Judge makes a guess, they will be told the Advocate's goal for that round and how many sticks were covered. They will also be told the Judge's goal for that round and the number of sticks the Advocate covered. The Judge does not see which sticks were covered and sees only the heights of the uncovered sticks.</p>

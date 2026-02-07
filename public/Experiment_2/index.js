@@ -47,8 +47,8 @@ timeline = timeline.concat(instruction_timeline);
 // Optionally, you can enable fullscreen or preload here if desired
 // timeline.push({ type: jsPsychFullscreen, fullscreen_mode: true });
 
-// Determine participant role from URL (?ROLE=advocate|judge); default judge
-const roleParam = (window.getQueryVariable && window.getQueryVariable('ROLE')) ? String(window.getQueryVariable('ROLE')).toLowerCase() : 'judge';
+// Determine participant role from URL (?ROLE=advocate|judge); default advocate
+const roleParam = (window.getQueryVariable && window.getQueryVariable('ROLE')) ? String(window.getQueryVariable('ROLE')).toLowerCase() : 'advocate';
 
 // Post-task note-taking question (Yes/No) + optional description, before end screen
 var wrote_notes_screen = {
